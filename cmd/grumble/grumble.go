@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 
 	"mumble.info/grumble/pkg/blobstore"
 	"mumble.info/grumble/pkg/logtarget"
@@ -18,6 +19,8 @@ import (
 
 var servers map[int64]*Server
 var blobStore blobstore.BlobStore
+
+var config = flag.String("config", "", "comma-separated key=value pairs to set in configuration")
 
 func main() {
 	var err error
@@ -204,6 +207,14 @@ func main() {
 		}
 	}
 
+	if *config != "" {
+		for _, c := range strings.Split(*config, ",") {
+			parts := strings.Split(c, "=")
+			for _, server := range servers {
+				server.cfg.Set(parts[0], parts[1])
+			}
+		}
+	}
 	// Launch the servers we found during launch...
 	for _, server := range servers {
 		err = server.Start()
